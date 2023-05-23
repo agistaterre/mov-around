@@ -226,50 +226,17 @@ selection_date2=function(donnees,liste_date){
 #' @return une liste de 3 vecteurs: la tendance, le cycle hebdomadaire et le bruit statistique
 #' @export
 #'
-desaisonalite=function(donnees,col,model){
-  # Calcul de la tendance à l'aide d'une moyenne glissante
-  tendance <- as.vector(ma(donnees[,col],order = 14))
-  # Extraction de la tendance selon le choix de modèle
-  if(model=="mult"){
-    sanstendance <- donnees[,col] / tendance
-  }
-  if(model=="add"){
-    sanstendance <- donnees[,col] - tendance
-  }
-  # Donnees sans tendance
-  tab_temp <- as_tibble(cbind(donnees$date,sanstendance))
-  colnames(tab_temp) <- c("date","ma")
-  # Determination de l'impact du jour de la semaine
-  jours_semaines <- tab_temp %>% 
-    group_by(wday(date)) %>% 
-    mutate(moyday=mean(ma,na.rm = TRUE)) %>% 
-    filter (! duplicated(wday(date))) %>% 
-    arrange(wday(date))
-  colnames(jours_semaines) <- c("date","ma","Jsem","moyday")
-  # Séparation des données sans tendance en un cycle hebdomadaire et un signal restant (bruit) 
-  decycle <- NULL
-  cycle <- NULL
-  for(i in 1:length(tab_temp$date)){
-    # Récupération du jour de la semaine
-    jour <- wday(tab_temp$date[i])
-    # Récupération de la valeur du jour de la semaine
-    val_jour <- jours_semaines %>% filter(Jsem==jour) %>%
-      .$moyday
-    # Séparaison selon le modèle choisie
-    cycle <- c(cycle,val_jour)
-    if(model=="mult"){
-      val_restante <- tab_temp$ma[i]/val_jour
-    }
-    if(model=="add"){
-      val_restante <- tab_temp$ma[i]-val_jour
-    }
-    decycle <- c(decycle,val_restante)
-  }
+desaisonalite <- function(donnees,col,model){
+  # Conversion en time serie
+  time_serie <- ts(donnees[,col], frequency = 7)
+  # Les eventuels NA sont remplaces par des 0
+  time_serie[is.na(time_serie)] <- 0
   
-  return(list(tendance=tendance,cycle=cycle,bruit=decycle))
+  # Decomposition de la serie temporelle avec une moyenne mobile d'ordre 14
+  decomposition <- decompose(time_serie, type=model,filter = c(0.5, rep(1, 14 - 1), 0.5)/14)
+  if (model=="add"){model <- "additive"} else {model <- "multiplicative"}
+  return(list(tendance=decomposition$trend, cycle=decomposition$seasonal, bruit=decomposition$random))
 }
-
-
 
 
 

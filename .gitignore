@@ -1,7 +1,2 @@
 .Rproj.user
-.Rhistory
-.RData
-.Ruserdata
-/rsconnect/
-
-h
+inst/doc

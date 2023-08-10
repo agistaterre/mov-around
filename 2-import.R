@@ -189,10 +189,10 @@ server_2 <- function(input, output, session){
         ),
         column(3,
                dateRangeInput(ns("date_range_simple_plot"), "Période",
-                              start  = "2021-01-01",
-                              end    = Sys.Date() - days(1),
-                              min    = "2021-01-01",
-                              max    = Sys.Date() - days(1))
+                              start  = starting_date,
+                              end    = ending_date - days(1),
+                              min    = starting_date,
+                              max    = ending_date - days(1))
         ),
         column(3),
         plotOutput(ns('simple_plot')),

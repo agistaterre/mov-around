@@ -24,6 +24,7 @@ key1 <- c(
   'X-Api-Key' = key
 )
 
+
 ## Initialization of the update
 
 date_filepath <- "data/date.txt"
